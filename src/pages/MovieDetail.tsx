@@ -8,6 +8,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import axios from 'axios';
+import MediaCard from '../components/MediaCard';
 
 const MovieDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +19,7 @@ const MovieDetail: React.FC = () => {
   const [trailer, setTrailer] = useState<string | null>(null);
   const [showTrailer, setShowTrailer] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [recommendations, setRecommendations] = useState<any[]>([]); // Ajoutez cette ligne
 
   useEffect(() => {
     const fetchMovieDetails = async () => {
@@ -57,6 +59,13 @@ const MovieDetail: React.FC = () => {
         if (trailers.length > 0) {
           setTrailer(trailers[0].key);
         }
+
+        // Récupérer les recommandations
+        const recommendationsResponse = await axios.get(
+          `https://api.themoviedb.org/3/movie/${id}/recommendations?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=fr-FR`
+        );
+
+        setRecommendations(recommendationsResponse.data.results.slice(0, 20)); // Limiter à 20 recommandations  
         
         setLoading(false);
       } catch (error) {
@@ -66,6 +75,9 @@ const MovieDetail: React.FC = () => {
     };
     
     fetchMovieDetails();
+    // Remonter en haut de la page à chaque changement d'ID
+    window.scrollTo(0, 0);
+    
   }, [id]);
   
   const handleClose = () => {
@@ -76,6 +88,37 @@ const MovieDetail: React.FC = () => {
     setShowTrailer(true);
   };
   
+  const handleRecommendationClick = (movieId: number) => {
+    // Remonter en haut de la page
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+    
+    // Naviguer vers le nouveau film
+    navigate(`/movie/${movieId}`);
+  };
+  
+  // Remplacez renderRecommendationCards par :
+  const renderRecommendationCards = () => {
+    return (
+      <Grid container spacing={2}>
+        {recommendations.map((movie) => (
+          <Grid item key={movie.id} xs={6} sm={4} md={3} lg={2}>
+            <MediaCard
+              id={movie.id}
+              title={movie.title}
+              posterPath={movie.poster_path}
+              releaseDate={movie.release_date}
+              isMovie={true}
+              onClick={handleRecommendationClick}
+            />
+          </Grid>
+        ))}
+      </Grid>
+    );
+  };
+
   if (loading || !movie) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>Chargement...</Box>;
   }
@@ -251,6 +294,13 @@ const MovieDetail: React.FC = () => {
             </ListItem>
           ))}
         </List>
+        {/* Recommandations */}
+        {recommendations.length > 0 && (
+          <>
+            <Typography variant="h4" sx={{ my: 3 }}>Films similaires</Typography>
+            {renderRecommendationCards()}
+          </>
+        )}
       </Container>
     </Box>
   );

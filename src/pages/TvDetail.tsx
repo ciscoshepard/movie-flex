@@ -9,6 +9,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from 'axios';
+import MediaCard from '../components/MediaCard';
 
 const TvDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +23,7 @@ const TvDetail: React.FC = () => {
   const [episodes, setEpisodes] = useState<{ [key: number]: any[] }>({});
   const [showTrailer, setShowTrailer] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [recommendations, setRecommendations] = useState<any[]>([]); // Ajoutez cette ligne
 
   useEffect(() => {
     const fetchTvDetails = async () => {
@@ -41,9 +43,15 @@ const TvDetail: React.FC = () => {
           `https://api.themoviedb.org/3/tv/${id}/videos?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=fr-FR`
         );
         
+        // Récupérer les recommandations
+        const recommendationsResponse = await axios.get(
+          `https://api.themoviedb.org/3/tv/${id}/recommendations?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=fr-FR&page=1`
+        );
+
         setShow(showResponse.data);
         setSeasons(showResponse.data.seasons.filter((s: any) => s.season_number > 0));
-        setCast(creditsResponse.data.cast.slice(0, 10)); // Limiter à 10 acteurs
+        setCast(creditsResponse.data.cast.slice(0, 10)); // Limiter à 10 
+        setRecommendations(recommendationsResponse.data.results.slice(0, 20)); // Limiter à 20 recommandations
         
         // Filtrer pour obtenir les créateurs, producteurs, scénaristes
         const creators = showResponse.data.created_by || [];
@@ -124,6 +132,36 @@ const TvDetail: React.FC = () => {
     setShowTrailer(true);
   };
   
+  const handleRecommendationClick = (tvId: number) => {
+    // Remonter en haut de la page d'abord
+    window.scrollTo(0, 0);
+    
+    // Puis naviguer vers la nouvelle série avec un court délai pour assurer le défilement
+    setTimeout(() => {
+      navigate(`/tv/${tvId}`);
+    }, 100);
+  };
+  
+  // Remplacez renderRecommendationCards par :
+  const renderRecommendationCards = () => {
+    return (
+      <Grid container spacing={2}>
+        {recommendations.map((tv) => (
+          <Grid item key={tv.id} xs={6} sm={4} md={3} lg={2}>
+            <MediaCard
+              id={tv.id}
+              title={tv.name}
+              posterPath={tv.poster_path}
+              releaseDate={tv.first_air_date}
+              isMovie={false}
+              onClick={handleRecommendationClick}
+            />
+          </Grid>
+        ))}
+      </Grid>
+    );
+  };
+
   if (loading || !show) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>Chargement...</Box>;
   }
@@ -373,6 +411,14 @@ const TvDetail: React.FC = () => {
             </ListItem>
           ))}
         </List>
+          
+        {/* Recommandations */}
+        {recommendations.length > 0 && (
+          <>
+            <Typography variant="h4" sx={{ my: 3 }}>Vous pourriez aussi aimer</Typography>
+            {renderRecommendationCards()}
+          </>
+        )}
       </Container>
     </Box>
   );

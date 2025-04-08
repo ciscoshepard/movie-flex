@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Container, Grid, Card, CardMedia, CardContent} from '@mui/material';
+import { Box, Typography, Container, Grid} from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Hero from '../components/Hero';
+import MediaCard from '../components/MediaCard';
 
 const Home: React.FC = () => {
   const [featuredMovie, setFeaturedMovie] = useState<any>(null);
@@ -60,46 +61,15 @@ const Home: React.FC = () => {
     return (
       <Grid container spacing={2}>
         {mediaList.map((media) => (
-          // Modification commune pour toutes les cartes media (dans Home, Movies, Series, SearchResults)
-          // Remplacer les CardActions existantes et ajouter des effets hover
-
           <Grid item key={media.id} xs={12} sm={6} md={3}>
-            <Card 
-              sx={{ 
-                height: '100%', 
-                display: 'flex', 
-                flexDirection: 'column',
-                transition: 'transform 0.3s, box-shadow 0.3s',
-                '&:hover': {
-                  transform: 'scale(1.05)',
-                  boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
-                  cursor: 'pointer'
-                }
-              }}
-              onClick={() => handleCardClick(media.id, isMovie)}
-            >
-              <CardMedia
-                component="img"
-                height="260"
-                sx={{ objectFit: 'cover' }}
-                image={
-                  media.poster_path
-                    ? `https://image.tmdb.org/t/p/w500${media.poster_path}`
-                    : 'https://via.placeholder.com/500x750?text=No+Image'
-                }
-                alt={isMovie ? media.title : media.name}
-              />
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography gutterBottom variant="h6" component="div" noWrap>
-                  {isMovie ? media.title : media.name}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {isMovie 
-                    ? media.release_date && new Date(media.release_date).getFullYear() 
-                    : media.first_air_date && new Date(media.first_air_date).getFullYear()}
-                </Typography>
-              </CardContent>
-            </Card>
+            <MediaCard
+              id={media.id}
+              title={isMovie ? media.title : media.name}
+              posterPath={media.poster_path}
+              releaseDate={isMovie ? media.release_date : media.first_air_date}
+              isMovie={isMovie}
+              onClick={handleCardClick}
+            />
           </Grid>
         ))}
       </Grid>
