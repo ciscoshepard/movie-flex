@@ -1,19 +1,32 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Box, CircularProgress } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import Drawer from '@mui/material/Drawer';
-import Box from '@mui/material/Box';
 
-import AppBar from './components/AppBar';
-import Sidebar from './components/SideBar';
+// Composants chargés normalement (pages principales)
+import Layout from './components/Layout';
 import Home from './pages/Home';
 import Movies from './pages/Movies';
 import Series from './pages/Series';
-import About from './pages/About';
-import SearchResults from './pages/SearchResults';
-import TvDetail from './pages/TvDetail';
-import MovieDetail from './pages/MovieDetail';
+
+// Composants chargés paresseusement (pages secondaires)
+const MovieDetail = lazy(() => import('./pages/MovieDetail'));
+const TvDetail = lazy(() => import('./pages/TvDetail'));
+const SearchResults = lazy(() => import('./pages/SearchResults'));
+const About = lazy(() => import('./pages/About'));
+
+// Élément de chargement
+const LoadingFallback = () => (
+  <Box sx={{ 
+    display: 'flex', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    minHeight: '70vh' 
+  }}>
+    <CircularProgress />
+  </Box>
+);
 
 const darkTheme = createTheme({
   palette: {
@@ -32,46 +45,41 @@ const darkTheme = createTheme({
 });
 
 function App() {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const handleDrawerToggle = () => {
-    setDrawerOpen(!drawerOpen);
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
-
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <Router>
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-          <AppBar onMenuClick={handleDrawerToggle} onSearch={handleSearch} />
-          <Drawer
-            anchor="left"
-            open={drawerOpen}
-            onClose={handleDrawerToggle}
-          >
-            <Sidebar open={drawerOpen} onClose={handleDrawerToggle} />
-          </Drawer>
-          
-          <Box component="main" sx={{ flexGrow: 1 }}>
-          
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/movies" element={<Movies />} />
-            <Route path="/series" element={<Series />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/search" element={<SearchResults query={searchQuery} />} />
-            <Route path="/movie/:id" element={<MovieDetail />} />
-            <Route path="/tv/:id" element={<TvDetail />} />
-          </Routes>
-          
-          </Box>
-        </Box>
-      </Router>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            {/* Routes chargées immédiatement */}
+            <Route index element={<Home />} />
+            <Route path="movies" element={<Movies />} />
+            <Route path="series" element={<Series />} />
+            
+            {/* Routes chargées paresseusement */}
+            <Route path="movie/:id" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <MovieDetail />
+              </Suspense>
+            } />
+            <Route path="tv/:id" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <TvDetail />
+              </Suspense>
+            } />
+            <Route path="search/:query?" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <SearchResults />
+              </Suspense>
+            } />
+            <Route path="about" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <About />
+              </Suspense>
+            } />
+          </Route>
+        </Routes>
+      </BrowserRouter>
     </ThemeProvider>
   );
 }

@@ -21,20 +21,26 @@ const MediaCard: React.FC<MediaCardProps> = ({
         flexDirection: 'column',
         transition: 'transform 0.3s, box-shadow 0.3s',
         '&:hover': {
-          transform: 'scale(1.05)',
-          boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
-          cursor: 'pointer'
-        }
+          transform: { xs: 'none', sm: 'scale(1.05)' }, // Désactive l'effet hover sur mobile
+          boxShadow: { xs: '0 4px 8px rgba(0,0,0,0.1)', sm: '0 10px 20px rgba(0,0,0,0.2)' }
+        },
+        '&:active': { // Ajoute un effet de toucher pour mobile
+          transform: { xs: 'scale(0.98)', sm: 'none' },
+          bgcolor: { xs: 'rgba(0,0,0,0.05)', sm: 'transparent' }
+        },
+        cursor: 'pointer'
       }}
       onClick={() => onClick(id, isMovie)}
     >
       <CardMedia
         component="img"
+        loading="lazy" // Charge les images seulement quand nécessaire
         height="auto"
         sx={{ 
           width: '100%',
           aspectRatio: '2/3',
-          objectFit: 'cover'
+          objectFit: 'cover',
+          minHeight: { xs: '200px', sm: 'auto' } // Hauteur minimale sur mobile
         }}
         image={
           posterPath
@@ -43,8 +49,18 @@ const MediaCard: React.FC<MediaCardProps> = ({
         }
         alt={title}
       />
-      <CardContent sx={{ flexGrow: 1, padding: '8px', textAlign: 'center' }}>
-        <Typography gutterBottom variant="subtitle2" component="div" noWrap>
+      <CardContent sx={{ 
+        flexGrow: 1, 
+        padding: { xs: '12px 8px', sm: '16px' }, // Plus de padding vertical sur mobile
+        textAlign: 'center' 
+      }}>
+        <Typography 
+          gutterBottom 
+          variant="subtitle2" 
+          component="div" 
+          noWrap
+          sx={{ fontSize: { xs: '0.85rem', sm: '0.875rem' } }} // Légèrement plus grand sur mobile
+        >
           {title}
         </Typography>
         {releaseDate && (

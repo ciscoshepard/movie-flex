@@ -1,4 +1,3 @@
-node_modules\n.env\n.env.local\nbuild
 # Fichiers d'environnement
 .env
 .env.local
@@ -11,6 +10,11 @@ node_modules\n.env\n.env.local\nbuild
 /build
 /.pnp
 .pnp.js
+
+# Cache
+.cache/
+node_modules/.cache/
+*.tsbuildinfo
 
 # Testing
 /coverage

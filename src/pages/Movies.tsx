@@ -60,7 +60,7 @@ const Movies: React.FC = () => {
     return (
       <Grid container spacing={2}>
         {mediaList.map((media) => (
-          <Grid item key={media.id} xs={12} sm={6} md={3}>
+           <Grid item key={media.id} xs={6} sm={6} md={3} lg={2}> {/* 2 cartes par ligne sur mobile */}
             <MediaCard
               id={media.id}
               title={isMovie ? media.title : media.name}
